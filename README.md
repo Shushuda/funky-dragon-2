@@ -9,7 +9,7 @@ Preview the game here - https://shushuda.github.io/funky-dragon-2/
 
 ## Getting Started
 
-Please download the files as-is, then launch the **game.html** file in your browser of choice. (IE might be wonky, so use a better browser...)
+Please download the files as-is, then launch the **index.html** file in your browser of choice. (IE might be wonky, so use a better browser...)
 
 ### Prerequisites
 
