@@ -5,7 +5,7 @@ This is a university project. The assignment was to create an interactive animat
 
 I kinda went overboard and the animation turned into a game. I've been focucing on JS and HTML Canvas elements.
 
-Preview the game here - 
+Preview the game here - https://shushuda.github.io/funky-dragon-2/
 
 ## Getting Started
 
