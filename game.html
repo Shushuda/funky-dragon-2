@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Funky Dragon - HTML/CSS/JS edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        canvas {
+            border: 2px solid #d3d3d3;
+            background-image: url("res/sky_background.png");
+            margin-left: calc(50% - 300px);
+        }
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="button-div" class="center">
+        <button id="start_button">Start the game</button>
+    </div>
+
+    <p style="text-align: center">
+        Move the green dragon with W and S keys.
+        <br><br>Reload the page to start again.
+    </p>
+
+    <div id="reload-div" class="center">
+        <button id="reload_button">Reload</button>
+    </div>
+
+    <div class="footer">
+        Code and dragon art (c) Weronika Sikora
+        <br>Background (c) <a href="https://www.freepik.com/free-photos-vectors/abstract">upklyak - www.freepik.com</a> (royalty-free)
+        <br>Music (c) Eric Matyas and <a href="https://www.soundjay.com/">soundjay.com</a> (royalty-free)
+    </div>
+
+    <script>
+        var dergen;
+        var bad_dergens = [];
+        var dergenSize = 80;
+        var hitSound, musicSound;
+
+        var dergen_filename = ["res/dergen1.png", "res/dergen2.png", "res/dergen3.png", "res/dergen4.png"];
+        var bad_dergen_filename = ["res/bad_dergen1.png", "res/bad_dergen2.png", "res/bad_dergen3.png", "res/bad_dergen4.png"];
+
+        var start_button = document.getElementById('start_button');
+        start_button.addEventListener('click', hideStart, false);
+
+        var realod_button = document.getElementById('reload_button');
+        reload_button.addEventListener('click', reload, false);
+
+        function hideStart() {
+            document.getElementById('button-div').style.display = 'block';
+            this.style.display = 'none';
+            startGame();
+        }
+
+        function reload() {
+            window.location.reload();
+        }
+
+        function startGame() {
+            dergen = new Component(dergenSize, dergenSize, dergen_filename, 20, 120);
+            hitSound = new Sound("res/hit.mp3");
+            musicSound = new Sound("res/bgm.mp3");
+            musicSound.sound.loop = true;
+            gameCanvas.start();
+        }
+
+        var gameCanvas = {
+            canvas : document.createElement("canvas"),
+            start : function() {
+                this.canvas.width = 600;
+                this.canvas.height = 500;
+
+                this.context = this.canvas.getContext("2d");
+                document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                musicSound.play();
+
+                this.frame = 0;
+                this.interval = setInterval(updateCanvas, 20);
+
+                document.addEventListener("keyup", keyUp);
+                document.addEventListener("keydown", keyDown);
+            },
+            clear : function() {
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            },
+            stop : function() {
+                clearInterval(this.interval);
+            }
+        };
+
+        function updateCanvas() {
+            var x, y, i, minY, maxY;
+
+            for (i = 0; i < bad_dergens.length; i += 1) {
+                if (dergen.hitbox(bad_dergens[i])) {
+                    musicSound.stop();
+                    hitSound.play();
+
+                    ctx = gameCanvas.context;
+                    ctx.fillStyle = "white";
+                    ctx.strokeStyle = "black";
+                    ctx.font = "bold 60px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("GAME OVER", ctx.canvas.width / 2, ctx.canvas.width / 2 - 30);
+                    ctx.strokeText("GAME OVER", ctx.canvas.width / 2, ctx.canvas.width / 2 - 30);
+
+                    gameCanvas.stop();
+                    return;
+                }
+            }
+
+            gameCanvas.clear();
+            gameCanvas.frame += 1;
+
+            if (gameCanvas.frame === 1 || everyFrame(50)) {
+                minY = 0;
+                maxY = gameCanvas.canvas.height - dergenSize;
+                x = gameCanvas.canvas.width;
+                y = Math.floor(Math.random() * (maxY + 1));
+                bad_dergens.push(new Component(dergenSize, dergenSize, bad_dergen_filename, x, y));
+            }
+
+            for (i = 0; i < bad_dergens.length; i += 1) {
+                bad_dergens[i].x -= 3;
+                bad_dergens[i].changeImage();
+                bad_dergens[i].update();
+            }
+
+            dergen.newPosition();
+            dergen.changeImage();
+            dergen.update();
+
+        }
+
+        function Component(width, height, filename, x, y) {
+            this.image = new Image();
+            this.filename = filename;
+            this.image.src = this.filename[0];
+            this.imageCounter = 1;
+            this.reverse = false;
+            this.width = width;
+            this.height = height;
+            this.x = x;
+            this.y = y;
+            this.speedX = 0;
+            this.speedY = 0;
+            this.update = function() {
+                ctx = gameCanvas.context;
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            };
+            this.newPosition = function() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+            };
+            this.hitbox = function(otherComponent) {
+                var leftBox = this.x + 7;
+                var rightBox = this.x + (this.width) - 7;
+                var topBox = this.y + 35;
+                var bottomBox = this.y + (this.height) - 35;
+
+                var otherLeftBox = otherComponent.x;
+                var otherRightBox = otherComponent.x + (otherComponent.width);
+                var otherTopBox = otherComponent.y;
+                var otherBottomBox = otherComponent.y + (otherComponent.height);
+
+                var hit = true;
+                if ((bottomBox < otherTopBox) || (topBox > otherBottomBox) || (rightBox < otherLeftBox) || (leftBox > otherRightBox)) {
+                    hit = false;
+                }
+                if (hit === true) {console.log("Hit!");}
+                return hit;
+            };
+            this.changeImage = function() {
+                if (everyFrame(5)) {
+                    this.image.src = filename[this.imageCounter];
+                    if (this.reverse === false) {
+                        this.imageCounter += 1;
+                        if (this.imageCounter > (this.filename.length - 1)) {
+                            this.imageCounter = 3;
+                            this.reverse = true;
+                        }
+                    } else if (this.reverse === true) {
+                        this.imageCounter -= 1;
+                        if (this.imageCounter < 0) {
+                            this.imageCounter = 0;
+                            this.reverse = false;
+                        }
+                    }
+
+                }
+            };
+        }
+
+        function Sound(source) {
+            this.sound = document.createElement("audio");
+            this.sound.src = source;
+            this.sound.setAttribute("preload", "auto");
+            this.sound.setAttribute("controls", "none");
+            this.sound.style.display = "none";
+            document.body.appendChild(this.sound);
+            this.play = function() {
+                console.log("Played sound - ", source);
+                this.sound.play();
+            };
+            this.stop = function() {
+                this.sound.pause();
+            }
+        }
+
+        function everyFrame(n) {
+            return (gameCanvas.frame / n) % 1 === 0;
+        }
+
+        function keyUp(event) {
+            var keyPressed = String.fromCharCode(event.keyCode);
+
+            if ((keyPressed === "W") || (keyPressed === "S")) {
+                dergen.speedY = 0;
+            }
+        }
+
+        function keyDown(event) {
+            var keyPressed = String.fromCharCode(event.keyCode);
+
+            if (keyPressed === "W") {
+                dergen.speedY = -3;
+                console.log("Move up - speedY = ", dergen.speedY);
+            }
+            else if (keyPressed === "S") {
+                dergen.speedY = 3;
+                console.log("Move down - speedY = ", dergen.speedY);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
