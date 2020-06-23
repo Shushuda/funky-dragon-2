@@ -57,7 +57,7 @@
         var start_button = document.getElementById('start_button');
         start_button.addEventListener('click', hideStart, false);
 
-        var realod_button = document.getElementById('reload_button');
+        var reload_button = document.getElementById('reload_button');
         reload_button.addEventListener('click', reload, false);
 
         function hideStart() {
@@ -103,7 +103,7 @@
         };
 
         function updateCanvas() {
-            var x, y, i, minY, maxY;
+            var x, y, i, maxY;
 
             for (i = 0; i < bad_dergens.length; i += 1) {
                 if (dergen.hitbox(bad_dergens[i])) {
@@ -127,11 +127,13 @@
             gameCanvas.frame += 1;
 
             if (gameCanvas.frame === 1 || everyFrame(50)) {
-                minY = 0;
                 maxY = gameCanvas.canvas.height - dergenSize;
                 x = gameCanvas.canvas.width;
                 y = Math.floor(Math.random() * (maxY + 1));
                 bad_dergens.push(new Component(dergenSize, dergenSize, bad_dergen_filename, x, y));
+                if (bad_dergens.length > 10) {
+                    bad_dergens = bad_dergens.slice(-10);
+                }
             }
 
             for (i = 0; i < bad_dergens.length; i += 1) {
@@ -163,8 +165,10 @@
                 ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
             };
             this.newPosition = function() {
-                this.x += this.speedX;
-                this.y += this.speedY;
+                ctx = gameCanvas.context;
+                if ((this.y + this.speedY) >= 0 && (this.y + this.speedY) <= (ctx.canvas.height - dergenSize)) {
+                    this.y += this.speedY;
+                }
             };
             this.hitbox = function(otherComponent) {
                 var leftBox = this.x + 7;
@@ -181,7 +185,6 @@
                 if ((bottomBox < otherTopBox) || (topBox > otherBottomBox) || (rightBox < otherLeftBox) || (leftBox > otherRightBox)) {
                     hit = false;
                 }
-                if (hit === true) {console.log("Hit!");}
                 return hit;
             };
             this.changeImage = function() {
@@ -213,7 +216,6 @@
             this.sound.style.display = "none";
             document.body.appendChild(this.sound);
             this.play = function() {
-                console.log("Played sound - ", source);
                 this.sound.play();
             };
             this.stop = function() {
@@ -238,11 +240,9 @@
 
             if (keyPressed === "W") {
                 dergen.speedY = -3;
-                console.log("Move up - speedY = ", dergen.speedY);
             }
             else if (keyPressed === "S") {
                 dergen.speedY = 3;
-                console.log("Move down - speedY = ", dergen.speedY);
             }
         }
     </script>
