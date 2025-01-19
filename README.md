@@ -17,7 +17,7 @@ Enabled JavaScript is a must.
 
 ## Authors
 
-* Code and dragon artwork - **Weronika Sikora** - [Shushuda](https://github.com/Shushuda)
+* Code and dragon artwork - [Shushuda](https://github.com/Shushuda)
 * Background artwork - **upklyak** - [www.freepik.com](https://www.freepik.com/free-photos-vectors/abstract)
 * Music - Eric Matyas and [soundjay.com](https://www.soundjay.com/)
 
